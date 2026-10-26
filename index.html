@@ -133,15 +133,17 @@
     return el("span", isExhibit ? "kind k-ex" : "kind k-show", isExhibit ? "展覽" : "演出");
   }
 
-  // 來源標籤：一律連到該源的官方首頁（新分頁）
-  function sourceNode(code) {
-    var s = SOURCES[code];
-    if (!s) return el("span", "src", "來源：" + code);
-    var a = el("a", "src", "來源：" + s.label);
-    a.href = s.url;
+  // 來源標籤：能精確到「這個節目」就精確；沒有單頁時退到場地節目表；再沒有就不給連結
+  function sourceNode(x) {
+    var s = SOURCES[x.source];
+    var label = s ? s.label : x.source;
+    var href = x.url || x.src_url || "";
+    if (!href) return el("span", "src no-link", "來源：" + label);
+    var a = el("a", "src", "來源：" + label);
+    a.href = href;
     a.target = "_blank";
     a.rel = "noopener";
-    a.title = s.label + "官方網站";
+    a.title = x.url ? (label + " · 這個節目的頁面") : (label + " · 該場地節目表");
     return a;
   }
 
@@ -206,7 +208,7 @@
     var tag = el("span", "tag", x.type);
     tag.setAttribute("data-t", x.type);
     meta.appendChild(tag);
-    if (x.source) meta.appendChild(sourceNode(x.source));
+    if (x.source) meta.appendChild(sourceNode(x));
     body.appendChild(meta);
 
     // 简介：只有部分源给得到（舞蹈团、室乐团），有就折两行，点一下展开
@@ -295,7 +297,7 @@
         if (x.venue) meta.appendChild(el("span", null, x.venue));
         var tag = el("span", "tag", "展覽"); tag.setAttribute("data-t", "展覽");
         meta.appendChild(tag);
-        if (x.source) meta.appendChild(sourceNode(x.source));
+        if (x.source) meta.appendChild(sourceNode(x));
         body.appendChild(meta);
         row.appendChild(body);
         items.appendChild(row);

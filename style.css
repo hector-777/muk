@@ -242,6 +242,8 @@ nav button[aria-pressed="true"]:hover{color:var(--paper);background:var(--ink);b
   transition:color .15s,border-color .15s;
 }
 .src:hover{color:var(--ink);border-bottom-color:var(--ink);}
+.src.no-link{cursor:default;border-bottom:0;}
+.src.no-link:hover{color:var(--ink-3);}
 
 /* 簡介：折兩行，點一下展開。只有舞蹈團、室樂團這類有原始文案的源才有 */
 .item-desc{
