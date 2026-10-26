@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幕 — 香港演出與展覽的時間軸</title>
-<link rel="stylesheet" href="style.css?v=12" id="css">
+<link rel="stylesheet" href="style.css?v=13" id="css">
 </head>
 <body>
 <div class="wrap">
@@ -39,13 +39,12 @@
     <select id="tfrom"><option value="">任何</option></select>
     <span class="dash">至</span>
     <select id="tto"><option value="">任何</option></select>
-  </div>
-
-  <div class="fontbar">
-    <span class="fontbar-label">字</span>
-    <button type="button" class="fs" data-fs="s">小</button>
-    <button type="button" class="fs on" data-fs="m">中</button>
-    <button type="button" class="fs" data-fs="l">大</button>
+    <div class="fontbar">
+      <span class="fontbar-label">字</span>
+      <button type="button" class="fs" data-fs="s">小</button>
+      <button type="button" class="fs on" data-fs="m">中</button>
+      <button type="button" class="fs" data-fs="l">大</button>
+    </div>
   </div>
   </div>
 
@@ -454,17 +453,13 @@
   }
   syncMastHeight();
   window.addEventListener('resize', syncMastHeight);
+  window.addEventListener('load', syncMastHeight);
+  setTimeout(syncMastHeight, 300);
+  if (window.ResizeObserver) {
+    try { new ResizeObserver(syncMastHeight).observe(document.querySelector('.masthead')); } catch (e) {}
+  }
 
   // 捲下去就把站頭縮小（只留「幕」、分類、「關於」），不然黏在頂上佔太多畫面
-  function onScrollCompact() {
-    var sc = window.scrollY > 60;
-    if (document.body.classList.contains('scrolled') !== sc) {
-      document.body.classList.toggle('scrolled', sc);
-      syncMastHeight();
-    }
-  }
-  window.addEventListener('scroll', onScrollCompact, { passive: true });
-  onScrollCompact();
 
   // 字號：小／中／大，記在 localStorage，下次打開沿用
   (function initFontSize() {

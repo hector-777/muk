@@ -35,25 +35,21 @@ body{
 /* ---------- 站頭 ---------- */
 .masthead{
   display:flex;align-items:baseline;justify-content:space-between;
-  gap:24px;flex-wrap:wrap;
-  padding-bottom:20px;
+  gap:10px 24px;flex-wrap:wrap;
+  padding-bottom:10px;
   position:sticky;top:0;z-index:31;
   background:var(--paper);
 }
-/* 捲下去時站頭收緊：只留「幕」、分類、「關於」，省畫面高度 */
-body.scrolled .masthead{padding-top:2px;padding-bottom:8px;}
-body.scrolled .logo{font-size:19px;letter-spacing:.08em;}
-body.scrolled .logo small{display:none;}
-body.scrolled .controls{padding-top:8px;padding-bottom:10px;}
 .logo{
-  font-family:var(--serif);font-size:30px;font-weight:700;
-  letter-spacing:.06em;margin:0;line-height:1.25;
+  font-family:var(--serif);font-size:22px;font-weight:700;
+  letter-spacing:.06em;margin:0;line-height:1.3;
 }
 .logo small{
-  display:block;font-family:var(--sans);font-size:11px;font-weight:400;
-  color:var(--ink-3);letter-spacing:.18em;text-transform:uppercase;margin-top:4px;
+  display:inline-block;font-family:var(--sans);font-size:10px;font-weight:400;
+  color:var(--ink-3);letter-spacing:.16em;text-transform:uppercase;
+  margin-left:10px;transform:translateY(-2px);
 }
-nav{display:flex;gap:10px;flex-wrap:wrap;}
+nav{display:flex;gap:6px;flex-wrap:wrap;}
 .navwrap{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
 
 /* 「關於」不是按鈕：底線＋箭頭，比正文更明顯，但一看就知道是連結 */
@@ -196,7 +192,7 @@ nav button[aria-pressed="true"]:hover{color:var(--paper);background:var(--ink);b
 
 /* ---------- 字號：小／中／大 ---------- */
 .fontbar{
-  display:flex;align-items:center;gap:4px;margin-top:8px;
+  display:flex;align-items:center;gap:4px;margin-left:auto;
   font-size:12px;color:var(--ink-3);
 }
 .fontbar-label{letter-spacing:.14em;margin-right:6px;}
