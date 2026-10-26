@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幕 — 香港演出與展覽的時間軸</title>
-<link rel="stylesheet" href="style.css?v=7" id="css">
+<link rel="stylesheet" href="style.css?v=8" id="css">
 </head>
 <body>
 <div class="wrap">
@@ -17,6 +17,7 @@
     </div>
   </header>
 
+  <div class="controls" id="controls">
   <div class="jumpbar">
     <label for="jump">由</label>
     <input type="date" id="jump">
@@ -38,6 +39,7 @@
     <select id="tfrom"><option value="">任何</option></select>
     <span class="dash">至</span>
     <select id="tto"><option value="">任何</option></select>
+  </div>
   </div>
 
   <section class="band" id="band" hidden data-open="0">
@@ -137,9 +139,13 @@
     var show = open ? items : items.slice(0, BAND_PREVIEW);
     show.forEach(function (x) {
       var li = el("li");
-      var a = el("a", "band-link", x.title);
-      a.href = x.url || "#";
-      if (x.url) { a.target = "_blank"; a.rel = "noopener"; }
+      var a;
+      if (x.url) {
+        a = el("a", "band-link", x.title);
+        a.href = x.url; a.target = "_blank"; a.rel = "noopener";
+      } else {
+        a = el("span", "band-link no-link", x.title);
+      }
       li.appendChild(a);
       li.appendChild(el("span", "band-date", "　" + spanText(x)));
       list.appendChild(li);
@@ -162,9 +168,13 @@
     var time = el("div", "item-time", past ? "已結束" : (x.time || ""));
     var body = el("div", "item-body");
 
-    var a = el("a", "item-title", x.title);
-    a.href = x.url || "#";
-    if (x.url) { a.target = "_blank"; a.rel = "noopener"; }
+    var a;
+    if (x.url) {
+      a = el("a", "item-title", x.title);
+      a.href = x.url; a.target = "_blank"; a.rel = "noopener";
+    } else {
+      a = el("span", "item-title no-link", x.title);
+    }
     body.appendChild(a);
 
     var meta = el("div", "item-meta");
@@ -249,8 +259,13 @@
         var row = el("div", "item");
         row.appendChild(el("div", "item-time", ""));
         var body = el("div", "item-body");
-        var a = el("a", "item-title", x.title);
-        a.href = x.url || "#"; if (x.url) { a.target = "_blank"; }
+        var a;
+        if (x.url) {
+          a = el("a", "item-title", x.title);
+          a.href = x.url; a.target = "_blank"; a.rel = "noopener";
+        } else {
+          a = el("span", "item-title no-link", x.title);
+        }
         body.appendChild(a);
         var meta = el("div", "item-meta");
         meta.appendChild(kindBadge(true));
