@@ -233,12 +233,19 @@
     var box = document.getElementById("timeline");
     box.innerHTML = "";
 
-    var pool = (state.type === "展覽")
-      ? CAL.exhibits.filter(function (x) { return x.end >= TODAY; })
-      : CAL.shows.filter(function (x) {
-          if (x.d < TODAY) return false;
-          return state.type === "全部" || x.type === state.type;
-        });
+    var pool;
+    if (state.type === "展覽") {
+      // 展覽分兩攤：檔期長的進了上方橫帶（CAL.exhibits），短的留在時間軸（CAL.shows）。
+      // 點「展覽」要看全部，兩邊都要拿，否則只剩那十幾條。
+      pool = CAL.exhibits.concat(CAL.shows.filter(function (x) { return x.type === "展覽"; }))
+        .filter(function (x) { return x.end >= TODAY; })
+        .sort(function (a, b) { return a.d < b.d ? -1 : (a.d > b.d ? 1 : 0); });
+    } else {
+      pool = CAL.shows.filter(function (x) {
+        if (x.d < TODAY) return false;
+        return state.type === "全部" || x.type === state.type;
+      });
+    }
 
     // 日期范围筛选：只显示这几天
     if (state.from) pool = pool.filter(function (x) { return x.d >= state.from; });
@@ -344,11 +351,15 @@
     f.innerHTML = "";
     var lastShow = "", lastEx = "";
     CAL.shows.forEach(function (x) { if (x.d > lastShow) lastShow = x.d; });
+    // 展覽分兩攤（時間軸裡的短期展 + 上方横帶的長展），數數兩邊都算
+    var shortEx = CAL.shows.filter(function (x) { return x.type === "展覽"; });
+    shortEx.forEach(function (x) { if (x.end > lastEx) lastEx = x.end; });
     CAL.exhibits.forEach(function (x) { if (x.end > lastEx) lastEx = x.end; });
+    var exCount = CAL.exhibits.length + shortEx.length;
     f.appendChild(el("p", null, "資料更新：" + CAL.updated));
     f.appendChild(el("p", null,
-      "演出 " + CAL.shows.length + " 場，最遠到 " + lastShow +
-      "　·　展覽 " + CAL.exhibits.length + " 個，最遠到 " + lastEx));
+      "演出 " + (CAL.shows.length - shortEx.length) + " 場，最遠到 " + lastShow +
+      "　·　展覽 " + exCount + " 個（含短期展），最遠到 " + lastEx));
     f.appendChild(el("p", null,
       "來源：康文署、西九文化區、香港演藝學院、香港管弦樂團、香港藝術節、香港話劇團、香港舞蹈團、香港城市室樂團。"));
     f.appendChild(el("p", null,
