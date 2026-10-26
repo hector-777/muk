@@ -288,6 +288,13 @@ body.fs-l .wrap{zoom:1.14;}
 .tag[data-t="演出"]::before{background:var(--red);}
 .tag[data-t="展覽"]::before{background:var(--blue);}
 
+/* 內容類別：貼在分類旁邊的小標籤，跟上面那行篩選同一套規則 */
+.ctag{
+  font-size:10px;letter-spacing:.08em;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:3px;
+  padding:0 5px;line-height:1.6;white-space:nowrap;
+}
+
 /* 過期 */
 .past .item-title{color:var(--ink-3);}
 .past{opacity:.38;}
@@ -407,6 +414,57 @@ nav button:active,
   background:none;border-color:transparent;color:var(--ink);
 }
 
+/* ---------- 篩選列收合（手機別讓它吃掉半個畫面） ---------- */
+.filter-toggle{
+  appearance:none;display:flex;align-items:baseline;gap:8px;
+  width:100%;background:none;border:0;padding:0 0 10px;
+  cursor:pointer;text-align:left;font-family:var(--sans);
+}
+.filter-toggle .ft-label{
+  font-size:11px;font-weight:700;letter-spacing:.18em;color:var(--ink-3);
+  white-space:nowrap;transition:color .15s;
+}
+.filter-toggle:hover .ft-label{color:var(--ink-2);}
+.filter-toggle.has-filter .ft-label{color:var(--ink);}
+.filter-toggle .ft-sum{
+  flex:1;min-width:0;font-size:12px;color:var(--ink-2);letter-spacing:.02em;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.filter-toggle .ft-chev{
+  margin-left:auto;flex:0 0 auto;font-size:11px;color:var(--ink-2);
+  letter-spacing:.08em;line-height:1;white-space:nowrap;
+}
+.filter-toggle:hover .ft-chev{color:var(--ink);}
+/* 收起時只留一行：標籤 + 現在掛著哪些條件 */
+.controls:not(.collapsed) .ft-sum{display:none;}
+.controls.collapsed .filter-body{display:none;}
+.controls.collapsed{padding-top:10px;padding-bottom:8px;}
+
+/* ---------- 內容類別 ---------- */
+.contentbar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:10px;
+  font-size:12px;color:var(--ink-3);
+}
+.contentbar-label{letter-spacing:.14em;margin-right:6px;}
+.contentbar .chips{display:flex;flex-wrap:wrap;gap:6px;}
+.contentbar-hint{
+  flex-basis:100%;font-size:11px;color:var(--ink-3);letter-spacing:.03em;margin-top:2px;
+}
+.chip{
+  appearance:none;background:#fff;border:1px solid var(--line);cursor:pointer;
+  font-family:var(--sans);font-size:13px;color:var(--ink-2);
+  padding:3px 12px;border-radius:4px;letter-spacing:.05em;
+  display:inline-flex;align-items:center;gap:4px;
+  transition:color .15s,background .15s,border-color .15s,transform .1s;
+}
+.chip:hover{color:var(--ink);border-color:var(--ink-3);background:var(--paper-2);}
+.chip:active{transform:translateY(1px);}
+.chip:focus-visible{outline:1px solid var(--ink);outline-offset:2px;}
+.chip .n{font-size:10px;color:var(--ink-3);font-variant-numeric:tabular-nums;}
+.chip.c-on{color:var(--paper);background:var(--ink);border-color:var(--ink);font-weight:700;}
+.chip.c-on .n{color:rgba(250,249,246,.62);}
+.chip.c-on:hover{color:var(--paper);background:var(--ink);border-color:var(--ink);}
+
 @media (max-width:600px){
   .wrap{padding:40px 20px 72px;}
   .controls{margin:0 -20px;padding:10px 20px 12px;}
@@ -416,5 +474,22 @@ nav button:active,
   .item{grid-template-columns:46px 1fr;gap:10px;}
   .month{font-size:22px;}
   .logo{font-size:26px;}
-  .placebar input{width:140px;}
+  .placebar input{width:120px;}
+  .placebar .dash{display:none;}
+  .filter-toggle{padding-bottom:8px;}
+  .contentbar{font-size:11px;}
+  .contentbar-label{font-size:11px;}
+  .chip{font-size:12px;padding:3px 10px;}
+  /* 手機：站頭不黏頂，滑走後只留篩選那一行；分類只佔一行、可左右滑 */
+  .masthead{position:static;gap:6px 12px;padding-bottom:8px;}
+  .controls{top:0;}
+  .navwrap{flex-wrap:nowrap;width:100%;gap:10px;align-items:center;}
+  #filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px;
+    -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);
+    mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);}
+  #filters::-webkit-scrollbar{display:none;}
+  #filters button{flex:0 0 auto;}
+  .toplink{flex:0 0 auto;padding-left:10px;}
+  /* 字號自成一行，不要擠在時間欄後面 */
+  .fontbar{flex-basis:100%;margin-left:0;margin-top:2px;}
 }
