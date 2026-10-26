@@ -97,6 +97,8 @@
     hkrep:  { label: "香港話劇團",   url: "https://www.hkrep.com/" },
     hkdance:{ label: "香港舞蹈團",   url: "https://www.hkdance.com/" },
     ccohk:  { label: "香港城市室樂團", url: "https://www.ccohk.com/" },
+    hksl:   { label: "香港小交響樂團", url: "https://hksl.org/zh-hant/" },
+    chungying: { label: "中英劇團", url: "https://www.chungying.com/tc/" },
     mplus:  { label: "M+",           url: "https://www.mplus.org.hk/tc/" },
     hkmoa:  { label: "香港藝術館",   url: "https://hk.art.museum/tc/web/ma/" },
     heritage:{ label: "香港文化博物館", url: "https://hk.heritage.museum/tc/" },
@@ -170,8 +172,20 @@
     return (d.getMonth() + 1) + "月" + d.getDate() + "日";
   }
   function wd(iso) { return WD[new Date(iso + "T00:00:00").getDay()]; }
+  // 週序號（以星期一為一週的頭）：只用來在週與週之間留一道真正的空白
+  function weekIndex(iso) {
+    var d = new Date(iso + "T00:00:00");
+    var mon = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    var day = (mon.getUTCDay() + 6) % 7;
+    mon.setUTCDate(mon.getUTCDate() - day);
+    return Math.round(mon.getTime() / 604800000);
+  }
   // 展期可能是空的（常設／長期展），比較大小時給一個很遠的日期
   function endOf(x) { return x.end || "9999-12-31"; }
+  // 早就開始、但現在還在演（最多是那種連演兩三個月的節）——時間軸上歸到「今天」，
+  // 不然八月開幕的節會把整個十月壓到下面去。原來的開始日另外標「8.4 起」。
+  function effDate(x) { return (x.d < TODAY && endOf(x) >= TODAY) ? TODAY : x.d; }
+  function isRunning(x) { return x.d < TODAY && endOf(x) >= TODAY; }
 
   function renderFilters() {
     var nav = document.getElementById("filters");
@@ -290,6 +304,7 @@
     var ct = ctagNode(x);
     if (ct) meta.appendChild(ct);
     if (x.source) meta.appendChild(sourceNode(x));
+    if (isRunning(x)) meta.appendChild(el("span", "since", x.d.slice(5).replace("-", ".") + " 起"));
     body.appendChild(meta);
 
     // 简介：只有部分源给得到（舞蹈团、室乐团），有就折两行，点一下展开
@@ -318,6 +333,12 @@
         // 已經演完的才隱藏；還在演的那種（10/24–11/08）要留著
         if ((x.end || x.d) < TODAY) return false;
         return state.type === "全部" || x.type === state.type;
+      });
+      // 按「現在還在不在演」排，再按時間
+      pool.sort(function (a, b) {
+        var da = effDate(a), db = effDate(b);
+        if (da !== db) return da < db ? -1 : 1;
+        return (a.time || "") < (b.time || "") ? -1 : ((a.time || "") > (b.time || "") ? 1 : 0);
       });
     }
 
@@ -409,8 +430,10 @@
     }
 
     var currentMonth = "";
+    var lastWeek = null;
     shown.forEach(function (x) {
-      var m = monthLabel(x.d);
+      var ed = effDate(x);
+      var m = monthLabel(ed);
       if (m !== currentMonth) {
         currentMonth = m;
         var h = el("div", "month", m);
@@ -420,11 +443,16 @@
       // 同一天合併成一組
       var lastDay = box.lastElementChild;
       if (!lastDay || !lastDay.classList.contains("day") ||
-          lastDay.getAttribute("data-d") !== x.d) {
+          lastDay.getAttribute("data-d") !== ed) {
         var day = el("div", "day");
-        day.setAttribute("data-d", x.d);
-        var left = el("div", "day-date", dayLabel(x.d));
-        left.appendChild(el("em", null, wd(x.d)));
+        day.setAttribute("data-d", ed);
+        // 換週了就多留一道空（月標題下面那個第一天不算，月標題自己已經有空白）
+        var wk = weekIndex(ed);
+        var prev = box.lastElementChild;
+        if (wk !== lastWeek && prev && prev.classList.contains("day")) day.className += " wk-start";
+        lastWeek = wk;
+        var left = el("div", "day-date", dayLabel(ed));
+        left.appendChild(el("em", null, wd(ed)));
         var items = el("div", "items");
         day.appendChild(left);
         day.appendChild(items);
@@ -449,7 +477,7 @@
       "演出 " + (CAL.shows.length - shortEx.length) + " 場，最遠到 " + lastShow +
       "　·　展覽 " + exCount + " 個（含短期展），最遠到 " + lastEx));
     f.appendChild(el("p", null,
-      "來源：康文署、西九文化區、香港演藝學院、香港管弦樂團、香港藝術節、香港話劇團、香港舞蹈團、香港城市室樂團、M+、香港藝術館、香港文化博物館、art-mate。"));
+      "來源：康文署、西九文化區、香港演藝學院、香港管弦樂團、香港藝術節、香港話劇團、香港舞蹈團、香港城市室樂團、香港小交響樂團、中英劇團、M+、香港藝術館、香港文化博物館、art-mate。"));
     f.appendChild(el("p", null,
       "每個月抓一次。抓不到的就不寫，不猜。"));
     f.appendChild(el("p", "disclaimer",
@@ -648,7 +676,8 @@
     if (!box || !btn) return;
     var saved = null;
     try { saved = localStorage.getItem(KEY); } catch (e) {}
-    var open = (saved === '1' || saved === '0') ? (saved === '1') : (window.innerWidth > 700);
+    // 預設收起：內容先出來，工具後出來（人手進來先面對四層篩選，最傷舒服）
+    var open = (saved === '1' || saved === '0') ? (saved === '1') : false;
     function apply(o) {
       box.classList.toggle('collapsed', !o);
       btn.setAttribute('aria-expanded', String(o));

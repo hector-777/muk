@@ -6,10 +6,12 @@
   --paper:#FAF9F6;
   --paper-2:#F1EFE8;
   --ink:#1A1A18;
-  --ink-2:#5C5C55;
-  --ink-3:#8A8A80;
-  --line:#DEDCD5;
-  --line-2:#B9B6AC;
+  /* 灰只留兩種：一個給次要文字，一個給線。
+     原本五種灰（兩個文字灰＋兩個線灰）捱在一起，整頁就發虛。 */
+  --ink-2:#55554E;
+  --ink-3:var(--ink-2);
+  --line:#DCDAD3;
+  --line-2:var(--line);
   --red:#8C3A2E;      /* 表演 */
   --blue:#2C4A6B;     /* 展覽 */
   --grey:#4A4A46;     /* 電影 */
@@ -210,20 +212,27 @@ body.fs-l .wrap{zoom:1.14;}
 
 /* ---------- 時間軸 ---------- */
 .timeline{margin-top:48px;}
+/* 月標題：整頁唯一的大東西，其餘全部退成小字（一個搶戲就夠）。
+   左邊 negtive margin 當出血，看起來像故意排的，不像剩下的空白。 */
 .month{
-  font-family:var(--serif);font-size:28px;font-weight:700;
-  margin:56px 0 6px;letter-spacing:.03em;
+  font-family:var(--serif);font-weight:700;
+  font-size:clamp(46px,11vw,84px);line-height:.94;
+  margin:76px 0 18px;margin-left:-0.06em;
+  letter-spacing:.01em;
 }
 .month:first-child{margin-top:0;}
 .month em{
-  font-family:var(--sans);font-style:normal;font-size:11px;font-weight:400;
-  color:var(--ink-3);letter-spacing:.18em;margin-left:10px;text-transform:uppercase;
+  display:block;font-family:var(--sans);font-style:normal;
+  font-size:11px;font-weight:400;line-height:1.4;
+  color:var(--ink-3);letter-spacing:.22em;margin:10px 0 0;text-transform:uppercase;
 }
 
 .day{
   display:grid;grid-template-columns:104px 1fr;gap:24px;
   padding:18px 0;border-top:1px solid var(--line);
 }
+/* 週與週之間留真正的空（18+14+18 ≈ 50px），不然滑十分鐘不知道自己在哪 */
+.day.wk-start{margin-top:14px;}
 .day-date{
   font-family:var(--serif);font-size:18px;line-height:1.4;letter-spacing:.02em;
 }
@@ -294,6 +303,9 @@ body.fs-l .wrap{zoom:1.14;}
   border:1px solid var(--line);border-radius:3px;
   padding:0 5px;line-height:1.6;white-space:nowrap;
 }
+
+/* 「8.4 起」：早就開始、但現在還在演的（歸到今天那一組） */
+.since{font-size:10px;color:var(--ink-3);letter-spacing:.06em;}
 
 /* 過期 */
 .past .item-title{color:var(--ink-3);}
@@ -472,7 +484,7 @@ nav button:active,
   .day-date{display:flex;gap:8px;align-items:baseline;}
   .day-date em{display:inline;}
   .item{grid-template-columns:46px 1fr;gap:10px;}
-  .month{font-size:22px;}
+  .month{font-size:clamp(38px,13vw,54px);margin:56px 0 14px;}
   .logo{font-size:26px;}
   .placebar input{width:120px;}
   .placebar .dash{display:none;}
