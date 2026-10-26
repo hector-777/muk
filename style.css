@@ -37,7 +37,14 @@ body{
   display:flex;align-items:baseline;justify-content:space-between;
   gap:24px;flex-wrap:wrap;
   padding-bottom:20px;
+  position:sticky;top:0;z-index:31;
+  background:var(--paper);
 }
+/* 捲下去時站頭收緊：只留「幕」、分類、「關於」，省畫面高度 */
+body.scrolled .masthead{padding-top:2px;padding-bottom:8px;}
+body.scrolled .logo{font-size:19px;letter-spacing:.08em;}
+body.scrolled .logo small{display:none;}
+body.scrolled .controls{padding-top:8px;padding-bottom:10px;}
 .logo{
   font-family:var(--serif);font-size:30px;font-weight:700;
   letter-spacing:.06em;margin:0;line-height:1.25;
@@ -78,7 +85,7 @@ nav button[aria-pressed="true"]:hover{color:var(--paper);background:var(--ink);b
 
 /* ---------- 篩選列：捲下去時黏在視窗頂 ---------- */
 .controls{
-  position:sticky;top:0;z-index:30;
+  position:sticky;top:var(--mast-h,82px);z-index:30;
   background:var(--paper);
   margin:0 -20px;padding:12px 20px 14px;
   border-top:1px solid var(--line);

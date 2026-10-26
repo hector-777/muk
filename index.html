@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幕 — 香港演出與展覽的時間軸</title>
-<link rel="stylesheet" href="style.css?v=8" id="css">
+<link rel="stylesheet" href="style.css?v=9" id="css">
 </head>
 <body>
 <div class="wrap">
@@ -438,6 +438,26 @@
   })();
 
   renderAll();
+
+  // 站頭（站名、分類、「關於」）也黏在視窗頂；篩選列要接在它下面，
+  // 所以量一次它的高度寫進 CSS 變數，視窗變大變小時重新量。
+  function syncMastHeight() {
+    var m = document.querySelector('.masthead');
+    if (m) document.documentElement.style.setProperty('--mast-h', m.offsetHeight + 'px');
+  }
+  syncMastHeight();
+  window.addEventListener('resize', syncMastHeight);
+
+  // 捲下去就把站頭縮小（只留「幕」、分類、「關於」），不然黏在頂上佔太多畫面
+  function onScrollCompact() {
+    var sc = window.scrollY > 60;
+    if (document.body.classList.contains('scrolled') !== sc) {
+      document.body.classList.toggle('scrolled', sc);
+      syncMastHeight();
+    }
+  }
+  window.addEventListener('scroll', onScrollCompact, { passive: true });
+  onScrollCompact();
   };
 
   // 每次打开都用当前时间戳拉 data.js / style.css，避开浏览器缓存
