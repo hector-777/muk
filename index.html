@@ -83,7 +83,10 @@
     hkaf:   { label: "香港藝術節",   url: "https://www.hk.artsfestival.org/tc" },
     hkrep:  { label: "香港話劇團",   url: "https://www.hkrep.com/" },
     hkdance:{ label: "香港舞蹈團",   url: "https://www.hkdance.com/" },
-    ccohk:  { label: "香港城市室樂團", url: "https://www.ccohk.com/" }
+    ccohk:  { label: "香港城市室樂團", url: "https://www.ccohk.com/" },
+    mplus:  { label: "M+",           url: "https://www.mplus.org.hk/tc/" },
+    hkmoa:  { label: "香港藝術館",   url: "https://hk.art.museum/tc/web/ma/" },
+    heritage:{ label: "香港文化博物館", url: "https://hk.heritage.museum/tc/" }
   };
   var WEEK_CHIPS = [
     { label: "平日", days: [1, 2, 3, 4, 5] },
@@ -110,6 +113,8 @@
     return (d.getMonth() + 1) + "月" + d.getDate() + "日";
   }
   function wd(iso) { return WD[new Date(iso + "T00:00:00").getDay()]; }
+  // 展期可能是空的（常設／長期展），比較大小時給一個很遠的日期
+  function endOf(x) { return x.end || "9999-12-31"; }
 
   function renderFilters() {
     var nav = document.getElementById("filters");
@@ -125,7 +130,8 @@
   // 展覽檔期文字：同年只寫月日，跨年寫完整
   function spanText(x) {
     var a = x.d, b = x.end;
-    if (!b) return a;
+    if (!b) return x.open ? (a.slice(5).replace("-", ".") + " 起・常設") : a;
+    if (x.open) return "常設・展至 " + (a.slice(0, 4) === b.slice(0, 4) ? b.slice(5).replace("-", ".") : b);
     if (a.slice(0, 4) === b.slice(0, 4)) {
       return a.slice(5).replace("-", ".") + " – " + b.slice(5).replace("-", ".");
     }
@@ -161,7 +167,7 @@
     if (state.type !== "全部" || state.from || state.days.length) {
       band.hidden = true; return;
     }
-    var items = CAL.exhibits.filter(function (x) { return x.end >= TODAY; });
+    var items = CAL.exhibits.filter(function (x) { return endOf(x) >= TODAY; });
     list.innerHTML = "";
     if (!items.length) { band.hidden = true; return; }
     band.hidden = false;
@@ -238,7 +244,7 @@
       // 展覽分兩攤：檔期長的進了上方橫帶（CAL.exhibits），短的留在時間軸（CAL.shows）。
       // 點「展覽」要看全部，兩邊都要拿，否則只剩那十幾條。
       pool = CAL.exhibits.concat(CAL.shows.filter(function (x) { return x.type === "展覽"; }))
-        .filter(function (x) { return x.end >= TODAY; })
+        .filter(function (x) { return endOf(x) >= TODAY; })
         .sort(function (a, b) { return a.d < b.d ? -1 : (a.d > b.d ? 1 : 0); });
     } else {
       pool = CAL.shows.filter(function (x) {
@@ -292,7 +298,7 @@
       shown.forEach(function (x) {
         var d = el("div", "day");
         var left = el("div", "day-date", spanText(x));
-        left.appendChild(el("em", null, daysBetween(x) + " 天"));
+        left.appendChild(el("em", null, x.open ? "長期展出" : daysBetween(x) + " 天"));
         var items = el("div", "items");
         var row = el("div", "item");
         row.appendChild(el("div", "item-time", ""));
@@ -361,7 +367,7 @@
       "演出 " + (CAL.shows.length - shortEx.length) + " 場，最遠到 " + lastShow +
       "　·　展覽 " + exCount + " 個（含短期展），最遠到 " + lastEx));
     f.appendChild(el("p", null,
-      "來源：康文署、西九文化區、香港演藝學院、香港管弦樂團、香港藝術節、香港話劇團、香港舞蹈團、香港城市室樂團。"));
+      "來源：康文署、西九文化區、香港演藝學院、香港管弦樂團、香港藝術節、香港話劇團、香港舞蹈團、香港城市室樂團、M+、香港藝術館、香港文化博物館。"));
     f.appendChild(el("p", null,
       "每個月抓一次。抓不到的就不寫，不猜。"));
   }
