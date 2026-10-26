@@ -68,6 +68,17 @@
   var WD = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
   var TYPES = ["全部", "音樂劇", "話劇", "舞蹈", "音樂會", "戲曲", "電影", "展覽", "其他"];
   var state = { type: "全部", from: "", to: "", days: [], place: "", tFrom: "", tTo: "" };
+  // 源 → 官方首頁。條目自己沒有單頁網址時，至少讓他知道「這條從哪來、要去哪裡看」
+  var SOURCES = {
+    lcsd:   { label: "康文署",       url: "https://www.lcsd.gov.hk/tc/" },
+    westk:  { label: "西九文化區",   url: "https://www.westk.hk/tc" },
+    hkapa:  { label: "香港演藝學院", url: "https://www.hkapa.edu/" },
+    hkphil: { label: "香港管弦樂團", url: "https://www.hkphil.org/tc" },
+    hkaf:   { label: "香港藝術節",   url: "https://www.hk.artsfestival.org/tc" },
+    hkrep:  { label: "香港話劇團",   url: "https://www.hkrep.com/" },
+    hkdance:{ label: "香港舞蹈團",   url: "https://www.hkdance.com/" },
+    ccohk:  { label: "香港城市室樂團", url: "https://www.ccohk.com/" }
+  };
   var WEEK_CHIPS = [
     { label: "平日", days: [1, 2, 3, 4, 5] },
     { label: "週末", days: [0, 6] },
@@ -120,6 +131,18 @@
   }
   function kindBadge(isExhibit) {
     return el("span", isExhibit ? "kind k-ex" : "kind k-show", isExhibit ? "展覽" : "演出");
+  }
+
+  // 來源標籤：一律連到該源的官方首頁（新分頁）
+  function sourceNode(code) {
+    var s = SOURCES[code];
+    if (!s) return el("span", "src", "來源：" + code);
+    var a = el("a", "src", "來源：" + s.label);
+    a.href = s.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.title = s.label + "官方網站";
+    return a;
   }
 
   function renderBand() {
@@ -183,7 +206,7 @@
     var tag = el("span", "tag", x.type);
     tag.setAttribute("data-t", x.type);
     meta.appendChild(tag);
-    if (x.source) meta.appendChild(el("span", null, x.source));
+    if (x.source) meta.appendChild(sourceNode(x.source));
     body.appendChild(meta);
 
     // 简介：只有部分源给得到（舞蹈团、室乐团），有就折两行，点一下展开
@@ -272,6 +295,7 @@
         if (x.venue) meta.appendChild(el("span", null, x.venue));
         var tag = el("span", "tag", "展覽"); tag.setAttribute("data-t", "展覽");
         meta.appendChild(tag);
+        if (x.source) meta.appendChild(sourceNode(x.source));
         body.appendChild(meta);
         row.appendChild(body);
         items.appendChild(row);

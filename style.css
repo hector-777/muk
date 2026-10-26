@@ -235,6 +235,13 @@ nav button[aria-pressed="true"]:hover{color:var(--paper);background:var(--ink);b
   font-size:12px;color:var(--ink-3);margin-top:5px;
   display:flex;gap:10px;flex-wrap:wrap;align-items:center;
 }
+/* 來源：連到該源官網首頁。沒有單頁網址的條目就靠它指出出處 */
+.src{
+  color:var(--ink-3);text-decoration:none;letter-spacing:.04em;
+  border-bottom:1px dotted var(--line-2);cursor:pointer;
+  transition:color .15s,border-color .15s;
+}
+.src:hover{color:var(--ink);border-bottom-color:var(--ink);}
 
 /* 簡介：折兩行，點一下展開。只有舞蹈團、室樂團這類有原始文案的源才有 */
 .item-desc{
