@@ -357,6 +357,60 @@ a.more:hover{border-bottom-color:var(--ink);}
 }
 .empty span{display:block;color:var(--ink-3);font-family:var(--sans);font-size:12px;margin-top:8px;}
 
+/* ---------- 按鈕統一：細邊框、小圓角、滑過有底、按下微沉 ---------- */
+nav button,
+.jumpbar button,
+.wchip,
+.fontbar .fs{
+  border-radius:4px;
+  padding:3px 12px;
+  background:#fff;
+  border:1px solid var(--line);
+  color:var(--ink-2);
+  font-size:13px;
+  letter-spacing:.05em;
+  transition:color .15s,background .15s,border-color .15s,transform .1s;
+}
+nav button:hover,
+.wchip:hover,
+.fontbar .fs:hover{
+  color:var(--ink);border-color:var(--ink-3);background:var(--paper-2);
+}
+nav button:active,
+.wchip:active,
+.fontbar .fs:active{transform:translateY(1px);}
+
+/* 「去」是搜尋：填墨的主按鈕，跟日期欄分開、靠右站 */
+.jumpbar{flex-wrap:wrap;}
+.jumpbar #jump-go{
+  margin-left:auto;
+  background:var(--ink);
+  border-color:var(--ink);
+  color:var(--paper);
+  font-weight:700;
+  padding:6px 22px;
+  border-radius:999px;
+  letter-spacing:.16em;
+}
+.jumpbar #jump-go:hover{
+  background:#33332F;
+  border-color:#33332F;
+  color:var(--paper);
+  transform:translateY(-1px);
+}
+.jumpbar #jump-go:active{transform:translateY(0);}
+.jumpbar #jump-clear{
+  background:none;
+  border-color:transparent;
+  color:var(--ink-3);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  padding:4px 6px;
+}
+.jumpbar #jump-clear:hover{
+  background:none;border-color:transparent;color:var(--ink);
+}
+
 @media (max-width:600px){
   .wrap{padding:40px 20px 72px;}
   .controls{margin:0 -20px;padding:10px 20px 12px;}
