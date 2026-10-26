@@ -314,7 +314,8 @@
         .sort(function (a, b) { return a.d < b.d ? -1 : (a.d > b.d ? 1 : 0); });
     } else {
       pool = CAL.shows.filter(function (x) {
-        if (x.d < TODAY) return false;
+        // 已經演完的才隱藏；還在演的那種（10/24–11/08）要留著
+        if ((x.end || x.d) < TODAY) return false;
         return state.type === "全部" || x.type === state.type;
       });
     }
