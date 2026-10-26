@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>幕 — 香港演出與展覽的時間軸</title>
+<link rel="stylesheet" href="style.css?v=7" id="css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead">
+    <h1 class="logo">幕<small>Hong Kong · What's On</small></h1>
+    <div class="navwrap">
+      <nav id="filters" aria-label="分類"></nav>
+      <a class="toplink" href="about.html">關於</a>
+    </div>
+  </header>
+
+  <div class="jumpbar">
+    <label for="jump">由</label>
+    <input type="date" id="jump">
+    <label for="jump-to">至</label>
+    <input type="date" id="jump-to">
+    <button type="button" id="jump-go">去</button>
+    <button type="button" id="jump-clear">全部時段</button>
+  </div>
+
+  <div class="weekbar" id="weekbar">
+    <span class="weekbar-label">星期</span>
+  </div>
+
+  <div class="placebar">
+    <label for="place">地點</label>
+    <input id="place" list="places" placeholder="場地名或關鍵字" autocomplete="off">
+    <datalist id="places"></datalist>
+    <label for="tfrom">時間</label>
+    <select id="tfrom"><option value="">任何</option></select>
+    <span class="dash">至</span>
+    <select id="tto"><option value="">任何</option></select>
+  </div>
+
+  <section class="band" id="band" hidden data-open="0">
+    <h2 id="band-title">展出中 · 展覽</h2>
+    <p class="band-note" id="band-note">檔期較長，與演出分開看。</p>
+    <ul id="band-list"></ul>
+  </section>
+
+  <main class="timeline" id="timeline"></main>
+
+  <footer id="foot"></footer>
+
+  <section class="about">
+    <h2>關於</h2>
+    <p>把香港幾個場地和藝團的節目表，併成同一條時間軸。不為賣票，只為讓你在某個沒事的晚上，剛好滑到一場想看的演出。</p>
+    <p>資料每月更新一次。過期的不刪，標上「已結束」。</p>
+    <p class="by">Hector Tam　·　君秋雪　·　二〇二六年十月</p>
+  </section>
+</div>
+
+<script>
+(function () {
+  window.__start = function start() {
+  var CAL = window.CALENDAR || { shows: [], exhibits: [], updated: "" };
+  var TODAY = new Date().toISOString().slice(0, 10);
+  var WD = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+  var TYPES = ["全部", "音樂劇", "話劇", "舞蹈", "音樂會", "戲曲", "電影", "展覽", "其他"];
+  var state = { type: "全部", from: "", to: "", days: [], place: "", tFrom: "", tTo: "" };
+  var WEEK_CHIPS = [
+    { label: "平日", days: [1, 2, 3, 4, 5] },
+    { label: "週末", days: [0, 6] },
+    { label: "一", days: [1] }, { label: "二", days: [2] },
+    { label: "三", days: [3] }, { label: "四", days: [4] },
+    { label: "五", days: [5] }, { label: "六", days: [6] },
+    { label: "日", days: [0] }
+  ];
+  var BAND_PREVIEW = 10;   // 展覽帶先露幾條，其餘可展開
+
+  function el(tag, cls, txt) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (txt != null) n.textContent = txt;
+    return n;
+  }
+  function monthLabel(iso) {
+    var d = new Date(iso + "T00:00:00");
+    return d.getFullYear() + "年" + (d.getMonth() + 1) + "月";
+  }
+  function dayLabel(iso) {
+    var d = new Date(iso + "T00:00:00");
+    return (d.getMonth() + 1) + "月" + d.getDate() + "日";
+  }
+  function wd(iso) { return WD[new Date(iso + "T00:00:00").getDay()]; }
+
+  function renderFilters() {
+    var nav = document.getElementById("filters");
+    nav.innerHTML = "";
+    TYPES.forEach(function (t) {
+      var b = el("button", null, t);
+      b.setAttribute("aria-pressed", String(state.type === t));
+      b.onclick = function () { state.type = t; renderAll(); };
+      nav.appendChild(b);
+    });
+  }
+
+  // 展覽檔期文字：同年只寫月日，跨年寫完整
+  function spanText(x) {
+    var a = x.d, b = x.end;
+    if (!b) return a;
+    if (a.slice(0, 4) === b.slice(0, 4)) {
+      return a.slice(5).replace("-", ".") + " – " + b.slice(5).replace("-", ".");
+    }
+    return a + " – " + b;
+  }
+  function daysBetween(x) {
+    var t1 = new Date(x.d + "T00:00:00"), t2 = new Date(x.end + "T00:00:00");
+    return Math.max(1, Math.round((t2 - t1) / 86400000) + 1);
+  }
+  function kindBadge(isExhibit) {
+    return el("span", isExhibit ? "kind k-ex" : "kind k-show", isExhibit ? "展覽" : "演出");
+  }
+
+  function renderBand() {
+    var band = document.getElementById("band");
+    var list = document.getElementById("band-list");
+    var title = document.getElementById("band-title");
+    // 展覽帶只在「全部」下出現（「展覽」分類本身已經把展覽全列出來，不重複）
+    if (state.type !== "全部" || state.from || state.days.length) {
+      band.hidden = true; return;
+    }
+    var items = CAL.exhibits.filter(function (x) { return x.end >= TODAY; });
+    list.innerHTML = "";
+    if (!items.length) { band.hidden = true; return; }
+    band.hidden = false;
+    title.textContent = "展出中 · 展覽（" + items.length + "）";
+    var open = band.getAttribute("data-open") === "1";
+    var show = open ? items : items.slice(0, BAND_PREVIEW);
+    show.forEach(function (x) {
+      var li = el("li");
+      var a = el("a", "band-link", x.title);
+      a.href = x.url || "#";
+      if (x.url) { a.target = "_blank"; a.rel = "noopener"; }
+      li.appendChild(a);
+      li.appendChild(el("span", "band-date", "　" + spanText(x)));
+      list.appendChild(li);
+    });
+    if (items.length > BAND_PREVIEW) {
+      var li2 = el("li", "band-toggle");
+      var btn = el("button", null, open ? "收起" : "還有 " + (items.length - BAND_PREVIEW) + " 個 · 展開全部");
+      btn.type = "button";
+      btn.onclick = function () {
+        band.setAttribute("data-open", open ? "0" : "1");
+        renderBand();
+      };
+      li2.appendChild(btn);
+      list.appendChild(li2);
+    }
+  }
+
+  function itemRow(x, past) {
+    var row = el("div", "item" + (past ? " past" : ""));
+    var time = el("div", "item-time", past ? "已結束" : (x.time || ""));
+    var body = el("div", "item-body");
+
+    var a = el("a", "item-title", x.title);
+    a.href = x.url || "#";
+    if (x.url) { a.target = "_blank"; a.rel = "noopener"; }
+    body.appendChild(a);
+
+    var meta = el("div", "item-meta");
+    meta.appendChild(kindBadge(x.type === "展覽"));
+    if (x.venue) meta.appendChild(el("span", null, x.venue));
+    var tag = el("span", "tag", x.type);
+    tag.setAttribute("data-t", x.type);
+    meta.appendChild(tag);
+    if (x.source) meta.appendChild(el("span", null, x.source));
+    body.appendChild(meta);
+
+    // 简介：只有部分源给得到（舞蹈团、室乐团），有就折两行，点一下展开
+    if (x.desc) {
+      var d = el("div", "item-desc", x.desc);
+      d.addEventListener("click", function () { d.classList.toggle("open"); });
+      body.appendChild(d);
+    }
+
+    row.appendChild(time);
+    row.appendChild(body);
+    return row;
+  }
+
+  function renderTimeline() {
+    var box = document.getElementById("timeline");
+    box.innerHTML = "";
+
+    var pool = (state.type === "展覽")
+      ? CAL.exhibits.filter(function (x) { return x.end >= TODAY; })
+      : CAL.shows.filter(function (x) {
+          if (x.d < TODAY) return false;
+          return state.type === "全部" || x.type === state.type;
+        });
+
+    // 日期范围筛选：只显示这几天
+    if (state.from) pool = pool.filter(function (x) { return x.d >= state.from; });
+    if (state.to) pool = pool.filter(function (x) { return x.d <= state.to; });
+    // 星期筛选
+    if (state.days.length) {
+      pool = pool.filter(function (x) {
+        return state.days.indexOf(new Date(x.d + "T00:00:00").getDay()) >= 0;
+      });
+    }
+    // 地点 / 关键字
+    if (state.place) {
+      var q = state.place.toLowerCase();
+      pool = pool.filter(function (x) {
+        return ((x.venue || "") + " " + (x.title || "")).toLowerCase().indexOf(q) >= 0;
+      });
+    }
+    // 时间段
+    if (state.tFrom || state.tTo) {
+      pool = pool.filter(function (x) {
+        if (!x.time) return false;
+        return x.time.split(/[\u3001,\uff0c]/).some(function (t) {
+          t = t.trim();
+          if (!/^\d{2}:\d{2}$/.test(t)) return false;
+          if (state.tFrom && t < state.tFrom) return false;
+          if (state.tTo && t > state.tTo) return false;
+          return true;
+        });
+      });
+    }
+
+    if (!pool.length) {
+      var e = el("div", "empty", "這段時間還沒有公布。");
+      e.appendChild(el("span", null, "香港多數藝團只提前三到六個月公布，之後會陸續增加。"));
+      box.appendChild(e);
+      return;
+    }
+
+    var shown = pool;
+    if (state.type === "展覽") {
+      var m1 = el("div", "month", "展覽 · 展出中");
+      m1.appendChild(el("em", null, "EXHIBITIONS"));
+      box.appendChild(m1);
+      shown.forEach(function (x) {
+        var d = el("div", "day");
+        var left = el("div", "day-date", spanText(x));
+        left.appendChild(el("em", null, daysBetween(x) + " 天"));
+        var items = el("div", "items");
+        var row = el("div", "item");
+        row.appendChild(el("div", "item-time", ""));
+        var body = el("div", "item-body");
+        var a = el("a", "item-title", x.title);
+        a.href = x.url || "#"; if (x.url) { a.target = "_blank"; }
+        body.appendChild(a);
+        var meta = el("div", "item-meta");
+        meta.appendChild(kindBadge(true));
+        if (x.venue) meta.appendChild(el("span", null, x.venue));
+        var tag = el("span", "tag", "展覽"); tag.setAttribute("data-t", "展覽");
+        meta.appendChild(tag);
+        body.appendChild(meta);
+        row.appendChild(body);
+        items.appendChild(row);
+        d.appendChild(left); d.appendChild(items);
+        box.appendChild(d);
+      });
+      return;
+    }
+
+    var currentMonth = "";
+    shown.forEach(function (x) {
+      var m = monthLabel(x.d);
+      if (m !== currentMonth) {
+        currentMonth = m;
+        var h = el("div", "month", m);
+        h.appendChild(el("em", null, "UPCOMING"));
+        box.appendChild(h);
+      }
+      // 同一天合併成一組
+      var lastDay = box.lastElementChild;
+      if (!lastDay || !lastDay.classList.contains("day") ||
+          lastDay.getAttribute("data-d") !== x.d) {
+        var day = el("div", "day");
+        day.setAttribute("data-d", x.d);
+        var left = el("div", "day-date", dayLabel(x.d));
+        left.appendChild(el("em", null, wd(x.d)));
+        var items = el("div", "items");
+        day.appendChild(left);
+        day.appendChild(items);
+        box.appendChild(day);
+      }
+      box.lastElementChild.querySelector(".items").appendChild(itemRow(x, false));
+    });
+  }
+
+  function renderFoot() {
+    var f = document.getElementById("foot");
+    f.innerHTML = "";
+    var lastShow = "", lastEx = "";
+    CAL.shows.forEach(function (x) { if (x.d > lastShow) lastShow = x.d; });
+    CAL.exhibits.forEach(function (x) { if (x.end > lastEx) lastEx = x.end; });
+    f.appendChild(el("p", null, "資料更新：" + CAL.updated));
+    f.appendChild(el("p", null,
+      "演出 " + CAL.shows.length + " 場，最遠到 " + lastShow +
+      "　·　展覽 " + CAL.exhibits.length + " 個，最遠到 " + lastEx));
+    f.appendChild(el("p", null,
+      "來源：康文署、西九文化區、香港演藝學院、香港管弦樂團、香港藝術節、香港話劇團、香港舞蹈團、香港城市室樂團。"));
+    f.appendChild(el("p", null,
+      "每個月抓一次。抓不到的就不寫，不猜。"));
+  }
+
+  function renderWeekChips() {
+    var box = document.getElementById("weekbar");
+    box.innerHTML = '<span class="weekbar-label">星期</span>';
+    WEEK_CHIPS.forEach(function (c) {
+      // 单个星期：只要在这个集合里就算选中；「平日」「週末」这种组合：集合完全相等才算
+      var pressed = (c.days.length === 1)
+        ? state.days.indexOf(c.days[0]) >= 0
+        : (c.days.length === state.days.length &&
+           c.days.every(function (d) { return state.days.indexOf(d) >= 0; }));
+      var b = el("button", pressed ? "wchip on" : "wchip", c.label);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(pressed));
+      b.onclick = function () {
+        if (c.days.length === 1) {
+          var i = state.days.indexOf(c.days[0]);
+          if (i >= 0) state.days.splice(i, 1);
+          else state.days.push(c.days[0]);
+        } else {
+          state.days = pressed ? [] : c.days.slice();
+        }
+        renderAll();
+      };
+      box.appendChild(b);
+    });
+    if (state.days.length) {
+      var c2 = el("button", "wchip clear", "清除星期");
+      c2.type = "button";
+      c2.onclick = function () { state.days = []; renderAll(); };
+      box.appendChild(c2);
+    }
+  }
+
+  function renderAll() {
+    renderWeekChips();
+    renderFilters();
+    renderBand();
+    renderTimeline();
+    renderFoot();
+  }
+
+  document.getElementById('jump-go').addEventListener('click', function () {
+    var f = document.getElementById('jump').value;
+    var t = document.getElementById('jump-to').value;
+    if (!f && !t) return;
+    state.from = f || t;
+    state.to = t || f;
+    if (state.from > state.to) { var tmp = state.from; state.from = state.to; state.to = tmp; }
+    renderAll();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  document.getElementById('jump-clear').addEventListener('click', function () {
+    state.from = ''; state.to = '';
+    document.getElementById('jump').value = '';
+    document.getElementById('jump-to').value = '';
+    renderAll();
+  });
+
+  (function initPlaceTime() {
+    var venues = {};
+    (CAL.shows || []).concat(CAL.exhibits || []).forEach(function (x) {
+      if (x.venue) venues[x.venue] = 1;
+    });
+    var dl = document.getElementById('places');
+    Object.keys(venues).sort().forEach(function (v) {
+      var o = document.createElement('option');
+      o.value = v;
+      dl.appendChild(o);
+    });
+    ['tfrom', 'tto'].forEach(function (id) {
+      var sel = document.getElementById(id);
+      for (var h = 0; h < 24; h++) {
+        var v = (h < 10 ? '0' : '') + h + ':00';
+        var o = document.createElement('option');
+        o.value = v; o.textContent = v;
+        sel.appendChild(o);
+      }
+    });
+    document.getElementById('place').addEventListener('input', function () {
+      state.place = this.value.trim(); renderAll();
+    });
+    document.getElementById('tfrom').addEventListener('change', function () {
+      state.tFrom = this.value; renderAll();
+    });
+    document.getElementById('tto').addEventListener('change', function () {
+      state.tTo = this.value; renderAll();
+    });
+  })();
+
+  renderAll();
+  };
+
+  // 每次打开都用当前时间戳拉 data.js / style.css，避开浏览器缓存
+  var l = document.getElementById('css');
+  if (l) l.href = 'style.css?t=' + Date.now();
+
+  var s = document.createElement('script');
+  s.src = 'data.js?t=' + Date.now();
+  s.onload = function () { window.__start(); };
+  s.onerror = function () { window.__start(); };
+  document.head.appendChild(s);
+})();
+</script>
+</body>
+</html>
