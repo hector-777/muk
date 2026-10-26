@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>幕 — 香港演出與展覽的時間軸</title>
-<link rel="stylesheet" href="style.css?v=9" id="css">
+<link rel="stylesheet" href="style.css?v=10" id="css">
 </head>
 <body>
 <div class="wrap">
@@ -39,6 +39,13 @@
     <select id="tfrom"><option value="">任何</option></select>
     <span class="dash">至</span>
     <select id="tto"><option value="">任何</option></select>
+  </div>
+
+  <div class="fontbar">
+    <span class="fontbar-label">字</span>
+    <button type="button" class="fs" data-fs="s">小</button>
+    <button type="button" class="fs on" data-fs="m">中</button>
+    <button type="button" class="fs" data-fs="l">大</button>
   </div>
   </div>
 
@@ -458,6 +465,33 @@
   }
   window.addEventListener('scroll', onScrollCompact, { passive: true });
   onScrollCompact();
+
+  // 字號：小／中／大，記在 localStorage，下次打開沿用
+  (function initFontSize() {
+    var KEY = 'muk-fs';
+    var btns = document.querySelectorAll('.fontbar .fs');
+    function apply(v) {
+      document.body.classList.remove('fs-s', 'fs-l');
+      if (v === 's') document.body.classList.add('fs-s');
+      if (v === 'l') document.body.classList.add('fs-l');
+      btns.forEach(function (b) {
+        var on = b.getAttribute('data-fs') === v;
+        b.classList.toggle('on', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      syncMastHeight();
+    }
+    var saved = 'm';
+    try { saved = localStorage.getItem(KEY) || 'm'; } catch (e) {}
+    apply(saved);
+    btns.forEach(function (b) {
+      b.addEventListener('click', function () {
+        var v = b.getAttribute('data-fs');
+        try { localStorage.setItem(KEY, v); } catch (e) {}
+        apply(v);
+      });
+    });
+  })();
   };
 
   // 每次打开都用当前时间戳拉 data.js / style.css，避开浏览器缓存

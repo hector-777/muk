@@ -194,6 +194,24 @@ nav button[aria-pressed="true"]:hover{color:var(--paper);background:var(--ink);b
 .placebar input::placeholder{color:var(--ink-3);}
 .placebar .dash{color:var(--ink-3);}
 
+/* ---------- 字號：小／中／大 ---------- */
+.fontbar{
+  display:flex;align-items:center;gap:4px;margin-top:8px;
+  font-size:12px;color:var(--ink-3);
+}
+.fontbar-label{letter-spacing:.14em;margin-right:6px;}
+.fontbar .fs{
+  appearance:none;background:#fff;border:1px solid var(--line);cursor:pointer;
+  font-family:var(--sans);font-size:12px;color:var(--ink-2);line-height:1.6;
+  padding:1px 9px;border-radius:3px;transition:all .15s;
+}
+.fontbar .fs:hover{color:var(--ink);border-color:var(--ink-3);background:var(--paper-2);}
+.fontbar .fs.on{color:var(--paper);background:var(--ink);border-color:var(--ink);font-weight:700;}
+
+/* 字號三檔：整體放大縮小（版面會跟著重排，不是單純拉字） */
+body.fs-s .wrap{zoom:.9;}
+body.fs-l .wrap{zoom:1.12;}
+
 /* ---------- 時間軸 ---------- */
 .timeline{margin-top:48px;}
 .month{
