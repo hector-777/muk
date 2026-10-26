@@ -356,7 +356,7 @@
     var f = document.getElementById("foot");
     f.innerHTML = "";
     var lastShow = "", lastEx = "";
-    CAL.shows.forEach(function (x) { if (x.d > lastShow) lastShow = x.d; });
+    CAL.shows.forEach(function (x) { if (x.type !== "展覽" && x.d > lastShow) lastShow = x.d; });
     // 展覽分兩攤（時間軸裡的短期展 + 上方横帶的長展），數數兩邊都算
     var shortEx = CAL.shows.filter(function (x) { return x.type === "展覽"; });
     shortEx.forEach(function (x) { if (x.end > lastEx) lastEx = x.end; });
