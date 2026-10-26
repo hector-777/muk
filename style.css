@@ -480,13 +480,14 @@ nav button:active,
   .contentbar{font-size:11px;}
   .contentbar-label{font-size:11px;}
   .chip{font-size:12px;padding:3px 10px;}
-  /* 手機：站頭不黏頂，滑走後只留篩選那一行；分類只佔一行、可左右滑 */
-  .masthead{position:static;gap:6px 12px;padding-bottom:8px;}
+  /* 手機：站頭不黏頂，滑走後只留篩選那一行；分類全部看得見、可點（不藏去右邊） */
+  .masthead{position:relative;gap:6px 12px;padding-bottom:8px;padding-right:58px;}
   .controls{top:0;}
-  .navwrap{flex-wrap:nowrap;width:100%;gap:10px;align-items:center;}
-  #filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px;
-    -webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);
-    mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent);}
+  body{overflow-x:hidden;}
+  .toplink{position:absolute;right:0;top:3px;padding-left:0;border-left:0;}
+  .navwrap{display:block;width:100%;}
+  #filters{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:0;}
+  #filters button{flex:0 0 auto;font-size:12px;padding:2px 9px;}
   #filters::-webkit-scrollbar{display:none;}
   #filters button{flex:0 0 auto;}
   .toplink{flex:0 0 auto;padding-left:10px;}
