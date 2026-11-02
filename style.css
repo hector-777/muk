@@ -537,5 +537,6 @@ nav button:active,
   #filters button{flex:0 0 auto;}
   .toplink{flex:0 0 auto;padding-left:10px;}
   /* 字號自成一行，不要擠在時間欄後面 */
-  .fontbar{flex-basis:100%;margin-left:0;margin-top:2px;}
+  .navwrap .fontbar{flex-basis:auto;margin:6px 0 0;gap:2px;}
+  .navwrap .fontbar .fs{font-size:12px;padding:1px 9px;}
 }
