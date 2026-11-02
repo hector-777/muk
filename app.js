@@ -53,18 +53,14 @@
   ];
   var BAND_PREVIEW = 10;   // 展覽帶先露幾條，其餘可展開
 
-  // 內容標籤：跨所有節目都成立的「取向」，不是門類。
-  // 門類（展覽／音樂會／話劇…）在頂部主分類，這裡只放真的會影響「去不去」的標籤。
-  // 2026-11-03 重整：原本七個（新作／經典重演／傳統／懷舊金曲／社區業餘／大眾娛樂／親子）
-  // 互相重疊，而且「新作」「經典重演」幾乎不影響選擇。現在收窄成五個，
-  // 参考资料：Timable／art-mate／URBTIX 都把折扣、人群、門類混在一行，那是反面教材。
-  var TOPICS = [
-    { key: "經典", re: /經典|古典|交響|管弦|室樂|名曲|名作|重演|傳承|保留劇目|粵劇|粵曲|崑曲|京劇|南音|神功戲|折子戲|戲寶|懷舊|老歌|金曲|書畫|水墨|文物|非遺|館藏|大師/ },
-    { key: "流行", re: /演唱會|流行|搖滾|樂隊|Band|Live|爵士|電音|嘻哈|綜藝|巡演|音樂節|棟篤笑|魔術|A cappella|無伴奏/ },
-    { key: "科技", re: /科技|電子|電腦|數碼|人工智能|AI|機械|機器人|創新科技|創科|FinTech|Tech|生物|醫療|醫藥|光學|眼鏡|汽車|航太/ },
-    { key: "人文", re: /書展|講座|座談|論壇|分享會|導賞|工作坊|閱讀|文學|歷史|文化|哲學|宗教|社區|教育|紀錄片|電影節|放映/ },
-    { key: "生活", re: /美食|飲食|酒|茶|咖啡|婚紗|婚禮|家居|寵物|運動|跑步|旅遊|健康|美容|時裝|玩具|購物|市集|節慶|嘉年華|親子|兒童/ }
-  ];
+  // 內容標籤：2026-11-03 撤掉。
+  // 原本七個（新作／經典重演／傳統／懷舊金曲／社區業餘／大眾娛樂／親子），
+  // 後來收窄成 經典／流行／科技／人文／生活。但實測 947 條裡有 524 條一個都命中不到
+  // （標題太中性，例如《巨債》《水色》），等於一半內容沒有標籤。
+  // 與其加一個「其他」把一半塞進去假裝分類，不如先不給標籤：
+  // 主分類（展覽／音樂會／話劇…）已經夠篩，少一層錯的資訊比多一層好。
+  // 日後要做，要按來源＋節目性質逐類定規則，不是靠關鍵字猜。
+  var TOPICS = [];
 
   function topicsOf(x) {
     if (x.__t) return x.__t;
@@ -498,7 +494,7 @@
     if (state.place) parts.push("地點：" + state.place);
     if (state.tFrom || state.tTo) parts.push((state.tFrom || "" ) + "–" + (state.tTo || ""));
     if (state.topics.length) parts.push("內容：" + state.topics.join("、"));
-    var txt = parts.length ? parts.join(" · ") : "日期 · 星期 · 地點 · 內容";
+    var txt = parts.length ? parts.join(" · ") : "日期 · 星期 · 地點 · 時間";
     s.textContent = txt;
     s.title = txt;
     if (btn) btn.classList.toggle("has-filter", parts.length > 0);
@@ -513,6 +509,18 @@
     renderTimeline(pool);
     renderFoot();
     updateFilterSummary();
+    syncResetBtn();
+  }
+
+  // 「清除全部」：只有真的篩過東西才出現，平時不佔位
+  function hasAnyFilter() {
+    return !!(state.type !== "全部" || state.from || state.to ||
+              state.days.length || state.place || state.tFrom || state.tTo);
+  }
+
+  function syncResetBtn() {
+    var b = document.getElementById("filter-reset");
+    if (b) b.hidden = !hasAnyFilter();
   }
 
   // data.js 載完後才會有 window.CALENDAR；這裡把它接進來。
@@ -549,6 +557,19 @@
     state.from = ''; state.to = '';
     document.getElementById('jump').value = '';
     document.getElementById('jump-to').value = '';
+    renderAll();
+  });
+
+  // 一次清掉所有篩選（分類、日期、星期、地點、時間）
+  document.getElementById('filter-reset').addEventListener('click', function () {
+    state.type = "全部";
+    state.from = ''; state.to = '';
+    state.days = []; state.place = ''; state.tFrom = ''; state.tTo = '';
+    document.getElementById('jump').value = '';
+    document.getElementById('jump-to').value = '';
+    document.getElementById('place').value = '';
+    document.getElementById('tfrom').value = '';
+    document.getElementById('tto').value = '';
     renderAll();
   });
 

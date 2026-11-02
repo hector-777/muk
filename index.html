@@ -24,6 +24,11 @@
     <h1 class="logo">幕<small>Hong Kong · What's On</small></h1>
     <div class="navwrap">
       <nav id="filters" aria-label="分類"></nav>
+      <div class="fontbar">
+        <button type="button" class="fs" data-fs="s">小</button>
+        <button type="button" class="fs on" data-fs="m">中</button>
+        <button type="button" class="fs" data-fs="l">大</button>
+      </div>
       <a class="toplink" href="about.html">關於</a>
     </div>
   </header>
@@ -35,40 +40,41 @@
     <span class="ft-chev" aria-hidden="true"></span>
   </button>
   <div class="filter-body" id="filter-body">
-  <div class="jumpbar">
-    <label for="jump">由</label>
-    <input type="date" id="jump">
-    <label for="jump-to">至</label>
-    <input type="date" id="jump-to">
-    <button type="button" id="jump-clear">全部時段</button>
-    <button type="button" id="jump-go">去</button>
-  </div>
 
-  <div class="weekbar" id="weekbar">
-    <span class="weekbar-label">星期</span>
-  </div>
-
-  <div class="placebar">
-    <label for="place">地點</label>
-    <input id="place" list="places" placeholder="場地名或關鍵字" autocomplete="off">
-    <datalist id="places"></datalist>
-    <label for="tfrom">時間</label>
-    <select id="tfrom"><option value="">任何</option></select>
-    <span class="dash">至</span>
-    <select id="tto"><option value="">任何</option></select>
-    <div class="fontbar">
-      <span class="fontbar-label">字</span>
-      <button type="button" class="fs" data-fs="s">小</button>
-      <button type="button" class="fs on" data-fs="m">中</button>
-      <button type="button" class="fs" data-fs="l">大</button>
+  <div class="frow">
+    <span class="frow-label">日期</span>
+    <div class="jumpbar">
+      <input type="date" id="jump" aria-label="由">
+      <span class="dash">至</span>
+      <input type="date" id="jump-to" aria-label="至">
+      <button type="button" id="jump-clear">全部時段</button>
+      <button type="button" id="jump-go">去</button>
     </div>
   </div>
 
-  <div class="contentbar" id="contentbar">
-    <span class="contentbar-label">內容</span>
-    <div class="chips" id="contentchips"></div>
-    <span class="contentbar-hint">點一下只看這類，可多選</span>
+  <div class="frow">
+    <span class="frow-label">星期</span>
+    <div class="weekbar" id="weekbar"></div>
   </div>
+
+  <div class="frow">
+    <span class="frow-label">地點</span>
+    <div class="placebar">
+      <input id="place" list="places" placeholder="場地名或關鍵字" autocomplete="off">
+      <datalist id="places"></datalist>
+    </div>
+  </div>
+
+  <div class="frow">
+    <span class="frow-label">時間</span>
+    <div class="timebar">
+      <select id="tfrom" aria-label="由"><option value="">任何</option></select>
+      <span class="dash">至</span>
+      <select id="tto" aria-label="至"><option value="">任何</option></select>
+      <button type="button" id="filter-reset" hidden>清除全部</button>
+    </div>
+  </div>
+
   </div>
   </div>
 
@@ -94,7 +100,7 @@
   <p>幕是一個香港演出與展覽的日曆：把康文署各個場地、西九文化區、香港管弦樂團、香港話劇團、香港舞蹈團、M+、香港藝術館等單位的節目表，按日子排在同一條時間軸上，包括舞台劇、音樂會、舞蹈、戲曲、電影與博物館展覽。時間軸由 JavaScript 載入，請開啟 JavaScript，或看<a href="about.html">關於</a>一頁了解資料來源與用法。</p>
 </noscript>
 
-<script src="app.js?v=2"></script>
+<script src="app.js?v=3"></script>
 <script>
   MUK.boot(function () { MUK.calendarPage(); });
 </script>
